@@ -1,0 +1,239 @@
+{
+  "name": "My workflow 13026",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 22
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -192,
+        96
+      ],
+      "id": "1d0d4dad-1ad2-47ac-bbbd-6c30fae3637a",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://aibusiness.com/rss.xml",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "05b8cae7-877b-4ded-a41b-00b4e9d04c3b",
+      "name": "AI news article"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        384,
+        80
+      ],
+      "id": "b2377950-4a2d-4b1a-a8d8-52e2b527e33a",
+      "name": "Data Aggregate"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.data }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are an AI news summarizer assistant.\nAnalyze the news articles and create an email summary.\n\nFor each article:\nCreate a headline in ALL CAPS\nWrite a 2-3 sentence summary\nInclude the article link\n\nFormat as:\nSubject: Today's AI News\n\nHi there,\n\nHere's your AI news summary:\n\nHEADLINE IN CAPS\nSummary of what happened and why it matters...\nRead more: [link]\n\nBest regards,\nAI News Bot"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.8,
+      "position": [
+        576,
+        80
+      ],
+      "id": "3a8b7847-9991-4e86-b5f2-3b979c4c5123",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        608,
+        256
+      ],
+      "id": "fa5f3691-ba70-4ce4-9081-44c079351902",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "me0DyvE9s0GZzjOR",
+          "name": "Google Gemini(PaLM) Api account 5264"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "lohith.guttikonda07@gmail.com",
+        "subject": "AI News",
+        "emailType": "text",
+        "message": "={{ $json.text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        880,
+        80
+      ],
+      "id": "00bcb061-7a70-4b23-bf71-9d5a063256c4",
+      "name": "Send a message",
+      "webhookId": "ee3a45b0-99da-406e-b753-0684b5dcec2c",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "zqirJwn7lQ3fZ17v",
+          "name": "Gmail account 1833"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://feeds.feedburner.com/TheHackersNews",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        -16,
+        256
+      ],
+      "id": "9a4dd90b-77ee-4594-8b1a-d2aad541f960",
+      "name": "RSS Read"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        208,
+        80
+      ],
+      "id": "214d69b3-cefe-4029-8523-56587e68e894",
+      "name": "Merge"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "RSS Read",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AI news article",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI news article": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Read": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Data Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "a3ad6da0-d788-4a33-99d4-192290c2e4f7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "969257b09ad2942bbaff2e2288304f4969030574d109cdeca05bf11f630884df"
+  },
+  "id": "9Ccd1Lo0SkSLbSIk",
+  "tags": []
+}
